@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\CategoryController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:web')->group(function () {
+Route::middleware('api.auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/session-check', [AuthController::class, 'checkSession']);

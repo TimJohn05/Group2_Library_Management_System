@@ -24,8 +24,10 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            Auth::login($user);
+            $request->session()->regenerate();
+        }
 
         return response()->json([
             'message' => 'Registration successful',
@@ -41,7 +43,9 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+            if ($request->hasSession()) {
+                $request->session()->regenerate();
+            }
 
             return response()->json([
                 'message' => 'Login successful',
@@ -57,8 +61,11 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Logout successful']);
     }
@@ -66,10 +73,13 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         if (Auth::check()) {
-            return response()->json([
-                'user' => Auth::user(),
-                'session_id' => $request->session()->getId()
-            ]);
+            $data = ['user' => Auth::user()];
+
+            if ($request->hasSession()) {
+                $data['session_id'] = $request->session()->getId();
+            }
+
+            return response()->json($data);
         }
 
         return response()->json(['message' => 'Not authenticated'], 401);
@@ -77,10 +87,16 @@ class AuthController extends Controller
 
     public function checkSession(Request $request)
     {
-        return response()->json([
-            'authenticated' => Auth::check(),
-            'session_id' => $request->session()->getId(),
-            'user' => Auth::user()
-        ]);
+        $data = ['authenticated' => Auth::check()];
+
+        if ($request->hasSession()) {
+            $data['session_id'] = $request->session()->getId();
+        }
+
+        if (Auth::check()) {
+            $data['user'] = Auth::user();
+        }
+
+        return response()->json($data);
     }
 }
